@@ -1,0 +1,15 @@
+{ "working_directory": "/home/kavia/workspace/code-generation",
+ "command": "#!/usr/bin/env bash
+set -euo pipefail
+WORKSPACE="/home/kavia/workspace/code-generation/food-delivery-app-frontend-225148-225187/database"
+APP_DIR="$WORKSPACE/app"
+cd "$APP_DIR"
+mkdir -p "$WORKSPACE/logs"
+# If build exists, skip; else run npm ci (if lockfile) then npm run build
+if [ -d build ] && [ -n "$(ls -A build)" ] 2>/dev/null; then exit 0; fi
+if [ -f yarn.lock ]; then yarn --frozen-lockfile --silent || (echo "yarn install failed" >&2; exit 2); elif [ -f package-lock.json ]; then npm ci --silent || (echo "npm ci failed" >&2; exit 2); else npm i --silent || (echo "npm install fallback failed" >&2; exit 2); fi
+# Build deterministically
+npm run build --silent >"$WORKSPACE/logs/build.out" 2>"$WORKSPACE/logs/build.err" || (cat "$WORKSPACE/logs/build.err" >&2; exit 3)
+# verify artifacts
+if [ ! -d build ] || [ -z "$(ls -A build 2>/dev/null)" ]; then echo "build failed: artifacts missing" >&2; exit 4; fi
+" }
